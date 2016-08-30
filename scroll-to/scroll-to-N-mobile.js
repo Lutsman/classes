@@ -10,7 +10,7 @@
     };
     ScrollToAnchor.prototype.anchorClickListener = function (e) {
         var elem = e.target;
-        var anchorWithHash = elem.closest('a[href^="#"]');
+        var anchorWithHash = elem.closest('a[href^="#"]:not([data-scroll="disable"])');
 
         if (!anchorWithHash || !anchorWithHash.hash.length) return;
 
@@ -38,30 +38,21 @@
 
     /*page scroll*/
     (function(){
-        var pageScroll = new ScrollToAnchor({});
+        var pageScroll = new ScrollToAnchor({
+            listenedBlock: document.getElementById('#top-menu'),
+            translation: '#top-menu'
+        });
         pageScroll.init();
     })();
 
     /*mmenu*/
     (function(){
         /*mmenu scroll*/
-        /*function MmenuScroll(options) {
-         ScrollToAnchor.apply(this, arguments);
-         }
-
-         MmenuScroll.prototype = Object.create(ScrollToAnchor.prototype);
-         MmenuScroll.prototype.constructor = MmenuScroll;
-
-         MmenuScroll.prototype.init = function () {
-
-         };*/
-
         var mmenuScroll = new ScrollToAnchor({
             listenedBlock: document.getElementById('#m-menu'),
-            translation:  document.querySelector('#m-menu-btn-wrapper').offsetHeight
+            translation:  '#top-menu'
         });
 
-        //console.log(document.querySelector('#m-menu-btn-wrapper').offsetHeight);
 
         setUpMmenu();
 
@@ -73,16 +64,7 @@
                 "extensions": ["theme-dark"]
             });
 
-
-            /*
-             $menu.on('click', function (e) {
-             var elem = e.target;
-             var target
-             });*/
-
-
             var selector = false;
-
             $menu.find( 'li > a' ).on(
                 'click',
                 function( e )
@@ -95,7 +77,7 @@
             api.bind( 'closed',
                 function() {
                     if (selector) {
-                        mmenuScroll.smoothScroll(selector, mmenuScroll._translation);
+                        mmenuScroll.smoothScroll(selector,  document.querySelector(mmenuScroll._translationElementSelector).offsetHeight);
                         selector = false;
                     }
                 }
