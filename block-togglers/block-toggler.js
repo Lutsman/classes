@@ -56,6 +56,26 @@
     searchBlockToggler.init();
 })();
 
+/*BlockToggler slide*/
+(function(){
+    var $toggleBtn = $('[data-action="block-toggle"]');
+
+    $toggleBtn.click(function (e) {
+        var targetSelector = $(this).attr('data-target');
+        var $target = $(this).parent().find(targetSelector);
+        e.preventDefault();
+
+        $(this).toggleClass('active');
+        //$target.slideToggle();
+
+        if ($(this).hasClass('active')) {
+            $target.slideDown();
+        } else {
+            $target.slideUp();
+        }
+    })
+})();
+
 /* (function(){
  function BlockToggler(options) {
  this._listenedBlock = options.listenedBlock || 'body';

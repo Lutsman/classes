@@ -3,7 +3,7 @@
     /*ScrollToAnchor class*/
     function ScrollToAnchor(options) {
         this._listenedBlock = options.listenedBlock || document.body;
-        this._translationElementSelector = options.translation;
+        this._translationElementSelector = options.translation || false;
     }
     ScrollToAnchor.prototype.init = function () {
         this._listenedBlock.addEventListener('click', this.anchorClickListener.bind(this));
