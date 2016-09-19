@@ -2,24 +2,25 @@
 (function(){
     function BlockToggler(options) {
         this._block = options.block;
-        //this._listenedBlock = options.listenedBlock || document.body;
         this._target = $(this._block).attr('data-target');
-        this._getTarget = options.getTarget || null; //func arg block return target
+        this._getTarget = options.getTarget || null; //func, arg: block, return: target
         this._groupName = $(this._block).attr('data-group-name');
         this._isActive = false;
+        this._animate = options.animate || 'slide';  // 'none', 'slide', 'fade'
         this._onOpen = options.onOpen || null;
         this._onClose = options.onClose || null;
         this._onAfterOpen = options.onAfterOpen || null;
         this._onAfterClose = options.onAfterClose || null;
     }
     BlockToggler.prototype.init = function () {
-        if (!this._target && typeof this._getTarget === 'function') {
-            this._target = this._getTarget(this._block);
-        }
+        var throttledToggler = this.throttle(this.toggler, 405);
 
-        $(this._block).on('click', this.toggler.bind(this));
+        $(this._block).on('click', throttledToggler.bind(this));
 
-        $('body').on('blockOpen',this.blockOpenListener.bind(this));
+        $('body').on({
+            'openBlock': this.openBlockListener.bind(this),
+            'closeGroup': this.closeGroupListener.bind(this)
+        });
     };
     BlockToggler.prototype.toggler = function (e) {
         e.preventDefault();
@@ -46,27 +47,107 @@
                 }
             }.bind(this));
 
-            $(this._block).trigger('blockOpen', [this._block, this._groupName]);
+            $(this._block).trigger('openBlock', [this._block, this._groupName]);
 
             if (this._onOpen) {
                 this._onOpen(this);
             }
         }
     };
-    BlockToggler.prototype.blockOpenListener = function (e, block, groupName) {
-        if (block === this._block || groupName !== this._groupName || !this._isActive) return;
+    BlockToggler.prototype.openBlockListener = function (e, block, groupName) {
+        if (block === this._block || groupName !== this._groupName || groupName === undefined || !this._isActive) return;
 
         $(this._block).removeClass('active');
         this.hideBlock();
     };
-    BlockToggler.prototype.showBlock = function (callback) {
-        $(this._target).slideDown('normal', 'linear', callback);
-        this._isActive = true;
+    BlockToggler.prototype.closeGroupListener = function (e, groupName) {
+        if (groupName !== this._groupName || groupName === undefined || !this._isActive) return;
 
+        this.hideBlock(function () {
+            $(this._block).removeClass('active');
+
+            if (this._onAfterClose) {
+                this._onAfterClose(this);
+            }
+        }.bind(this));
+
+        $(this._block).trigger('blockClose', [this._block, this._groupName]);
+
+        if (this._onClose) {
+            this._onClose(this);
+        }
+    };
+    BlockToggler.prototype.showBlock = function (callback) {
+        var target = this._target;
+
+        if (!this._target && typeof this._getTarget === 'function') {
+            target = this._getTarget(this._block);
+        }
+
+        switch (this._animate) {
+            case 'none':
+                $(target).show();
+                if (typeof callback === 'function') callback();
+                break;
+            case 'slide':
+                $(target).slideDown('normal', 'linear', callback);
+                break;
+            case 'fade':
+                $(target).fadeIn('normal', 'linear', callback);
+                break;
+        }
+
+        this._isActive = true;
     };
     BlockToggler.prototype.hideBlock = function (callback) {
-        $(this._target).slideUp('normal', 'linear', callback);
+        var target = this._target;
+
+        if (!this._target && typeof this._getTarget === 'function') {
+            target = this._getTarget(this._block);
+        }
+
+        switch (this._animate) {
+            case 'none':
+                $(target).hide();
+                if (typeof callback === 'function') callback();
+                break;
+            case 'slide':
+                $(target).slideUp('normal', 'linear', callback);
+                break;
+            case 'fade':
+                $(target).fadeOut('normal', 'linear', callback);
+                break;
+        }
         this._isActive = false;
+    };
+    BlockToggler.prototype.throttle = function (func, ms) {
+
+        var isThrottled = false,
+            savedArgs,
+            savedThis;
+
+        function wrapper() {
+
+            if (isThrottled) { // (2)
+                savedArgs = arguments;
+                savedThis = this;
+                return;
+            }
+
+            func.apply(this, arguments); // (1)
+
+            isThrottled = true;
+
+            setTimeout(function() {
+                isThrottled = false; // (3)
+                if (savedArgs) {
+                    wrapper.apply(savedThis, savedArgs);
+                    savedArgs = savedThis = null;
+                }
+            }, ms);
+        }
+
+        return wrapper;
     };
 
     $.fn.blockToggler = function () {

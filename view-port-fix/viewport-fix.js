@@ -1,13 +1,16 @@
-/*Scale*/
+/*Viewport fix safary*/
 (function(){
     'use strict';
-
     var element = document.querySelector('.page-wrap');
-    var fixViewport = function () {
-        element.style.minHeight = document.documentElement.clientHeight + 'px';
-    };
+    var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
-    // listen window height
-    window.addEventListener('resize', fixViewport, true);
-    fixViewport();
+    if (isSafari) {
+
+        window.addEventListener('resize', fixViewport.bind(null, element), true);
+        fixViewport(element);
+    }
+
+    function fixViewport (element) {
+        element.style.height = document.documentElement.clientHeight + 'px';
+    }
 })();
