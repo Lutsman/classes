@@ -34,7 +34,7 @@
 
 
             if (vVal.length === 0 && requiredField) {
-                placeholderMess = 'Поле ' + ($(this).attr('data-validate-empty') ? '"' + $(this).attr('data-validate-empty') + '" ' : '') + 'обязательное!';
+                placeholderMess = 'Поле ' + ($(this).attr('data-name') ? '"' + $(this).attr('data-name') + '" ' : '') + 'обязательное!';
                 vResult = false;
             } else if ($(this).attr('name') == 'email' && vVal.length) {
                 pattern = /^([a-z0-9_\.-])+@[a-z0-9-]+\.([a-z]{2,4}\.)?[a-z]{2,4}$/i;
