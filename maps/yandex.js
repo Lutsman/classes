@@ -67,7 +67,8 @@
 
         for (var currPlacemark in placemarks) {
             myMap.geoObjects.add(new ymaps.Placemark(placemarks[currPlacemark].coords, {
-                hintContent: placemarks[currPlacemark].hintContent
+                hintContent: placemarks[currPlacemark].hintContent,
+                balloonContent: 'hello'
             }, {
                 iconLayout: 'default#image',
                 iconImageHref: 'images/baloon.png',
