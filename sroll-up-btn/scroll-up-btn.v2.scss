@@ -1,0 +1,60 @@
+/*Scroll up button*/
+#scrollUp {
+    position: fixed;
+    width: 44px;
+    height: 36px;
+    background-color: transparent;
+    border: 1px solid #000;
+    box-sizing: border-box;
+    @include border-radius(5px);
+    right: 10px;
+    bottom: -40px;
+    display: none;
+    @include transition(0.2s ease-in-out);
+    @include transitionProperty(background, border);
+    cursor: pointer;
+    z-index: 20;
+    &:hover {
+        border-color: $accent-color;
+        background: $accent-color; //darken($accent-color, 20%);
+        .upButton {
+            border-top: 2px solid #fff;
+            border-left: 2px solid #fff;
+        }
+    }
+    .upButton {
+        @include transition(border 0.2s ease-in-out);
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        margin-top: -3px;
+        margin-left: -4px;
+        opacity: 1;
+        display: block;
+        width: 8px;
+        height: 8px;
+        border-top: 2px solid #000;
+        border-left: 2px solid #000;
+        @include transform(rotate(45deg));
+    }
+}
+
+/*Media for mobiles*/
+#scrollUp {
+    &:hover {
+        border-color: #000;
+        background-color: transparent;
+        .upButton {
+            border-top: 2px solid #000;
+            border-left: 2px solid #000;
+        }
+    }
+    &.active {
+        border-color: $accent-color;
+        background: $accent-color; //darken($accent-color, 20%);
+        .upButton {
+            border-top: 2px solid #fff;
+            border-left: 2px solid #fff;
+        }
+    }
+}
