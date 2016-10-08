@@ -55,6 +55,18 @@
         }
     };
     BlockToggler.prototype.openBlockListener = function (e, block, groupName) {
+        if(this._block.classList.contains('active') && block !== this._block) {
+            $(this._block).removeClass('active');
+            this.hideBlock();
+            return;
+        }
+
+        if($(this._getTarget(this._block)).is(':visible') && block !== this._block) {
+            $(this._block).removeClass('active');
+            this.hideBlock();
+            return;
+        }
+
         if (block === this._block || groupName !== this._groupName || groupName === undefined || !this._isActive) return;
 
         $(this._block).removeClass('active');
