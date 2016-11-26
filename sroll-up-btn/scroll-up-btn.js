@@ -1,12 +1,13 @@
 /*ScrollUp button*/
 (function(){
-    function ScrollTop() {
-        this._$btn = $('<div id="scrollUp"><i class="upButton"></i></div>');
+    function ScrollTop(tmpl) {
+        this._tmpl = tmpl || '<div id="scrollUp"><i class="upButton"></i></div>';
         this._isActive = false;
         
         this.init();
     }
     ScrollTop.prototype.init = function () {
+        this._$btn = $(this._tmpl);
         $('body').append(this._$btn);
         
         this.scrollBtnToggler();
