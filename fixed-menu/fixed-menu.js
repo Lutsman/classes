@@ -6,6 +6,7 @@
         this._menuIsFixed = false;
         this._staticMenuPosition = -1;
         this._isPageSearch = options.pageSearch || true;
+        this._pageSearchBlock = options.pageSearchBlock || options.menu;
         this._pageSearchClass = options.pageSearchClass || 'active';
     }
     FixedMenu.prototype.init = function () {
@@ -55,8 +56,8 @@
             if (!self._isPageSearch) return;
             if ($(self._menu).is(':hidden')) return;
             
-            var coordsMenu = self._menu.getBoundingClientRect();
-            var elem = document.elementFromPoint(self._menu.offsetWidth/2, coordsMenu.bottom + 50);
+            var coordsPageSearchBlock = self._pageSearchBlock.getBoundingClientRect();
+            var elem = document.elementFromPoint(self._pageSearchBlock.offsetWidth/2, coordsPageSearchBlock.bottom + 50);
             
             if (!elem && activeLink) {
                 activeLink.closest('li').classList.remove(self._pageSearchClass);
@@ -121,6 +122,7 @@
 $(menuElem).fixedMenu({
     fixedClass: 'js-top-fixed', //string, default = 'js-top-fixed', class for menu block
     pageSearch: true, //boolean, dafault = true, search blocks by anchors in menu, under menu
+    pageSearchBlock: '.someSearchBlock', //dom element , default equal to menu element
     pageSearchClass: 'active' // default = 'active', class for active link
 });
 
