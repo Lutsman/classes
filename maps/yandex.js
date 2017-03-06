@@ -55,6 +55,31 @@
         ymaps.ready(init);
     });
 
+
+    /*поведение карты*/
+    var $mapWrapper = $('.map-wrap');
+    var isActiveMap = false;
+
+    $mapWrapper.on('mouseleave', function () {
+        $mapWrapper.removeClass('active');
+        isActiveMap = false;
+    });
+    $('body').on('click', function (e) {
+        var target = e.target;
+
+        if ($(target).closest($mapWrapper).length) {
+            if (isActiveMap) return;
+
+            $mapWrapper.addClass('active');
+            isActiveMap = true;
+        } else {
+            if (!isActiveMap) return;
+
+            $mapWrapper.removeClass('active');
+            isActiveMap = false;
+        }
+    });
+
     function init(){
         var myMap = new ymaps.Map('map', {
             center: [55.7207,37.6110], //[55.7207,37.6234],
