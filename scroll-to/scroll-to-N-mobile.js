@@ -28,23 +28,31 @@
         e.preventDefault();
 
         var target = anchorWithHash.hash;
-        var translation = 0;
-
-        if (anchorWithHash.hasAttribute('data-translation')) {
-            translation = anchorWithHash.getAttribute('data-translation');
-        } else if (this._translationElementSelector) {
-            translation = document.querySelector(this._translationElementSelector).offsetHeight;
-        }
+        var translation = this.getTranslation(anchorWithHash);
 
         if (!document.querySelector(target)) return;
 
         this.smoothScroll(target, translation);
     };
+    ScrollToAnchor.prototype.getTranslation = function (anchor) {
+        var translation = 0;
+
+        if (anchor.hasAttribute('data-translation')) {
+            translation = anchor.getAttribute('data-translation');
+        } else if (this._translationElementSelector) {
+            $(this._translationElementSelector).each(function () {
+                translation += this.offsetHeight;
+            });
+            //translation = document.querySelector(this._translationElementSelector).offsetHeight;
+        }
+
+        return translation;
+    };
     ScrollToAnchor.prototype.smoothScroll = function (selector, translation) {
         $("html, body").animate({
-                scrollTop: $(selector).offset().top - (translation || 0)
-            },
-            500
+              scrollTop: $(selector).offset().top - (translation || 0)
+          },
+          500
         );
     };
 
