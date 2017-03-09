@@ -16,6 +16,8 @@
 
     BlockToggler.prototype.init = function () {
         var $target =  $(this._targetSelector);
+        var throttledToggler = this.throttle(this.toggler, 405);
+        var clickEvent = this._clickEvent = this.isIOS() ? 'touchstart' : 'click';
 
         if (typeof this._getTarget === 'function') {
             $target = $(this._getTarget(this._$block, this));
@@ -27,18 +29,12 @@
 
         this.outerClickListener = this.outerClickListener.bind(this);
 
-        var throttledToggler = this.throttle(this.toggler, 405);
-
-        this._$block.on('click', throttledToggler.bind(this));
+        this._$block.on(clickEvent, throttledToggler.bind(this));
 
         $('body').on({
             'openBlock': this.openBlockListener.bind(this),
             'closeGroup': this.closeGroupListener.bind(this)
         });
-
-        /*if (this._outerClickClose) {
-         $('body').on('click', this.outerClickListener.bind(this));
-         }*/
     };
     BlockToggler.prototype.toggler = function (e) {
         var $el = $(e.target);
@@ -56,9 +52,9 @@
     };
     BlockToggler.prototype.openBlockListener = function (e, $block, groupName) {
         if (!this._isActive ||
-          $block.is(this._$block) ||
-          groupName !== this._groupName ||
-          groupName === undefined) {
+            $block.is(this._$block) ||
+            groupName !== this._groupName ||
+            groupName === undefined) {
             return;
         }
 
@@ -66,8 +62,8 @@
     };
     BlockToggler.prototype.closeGroupListener = function (e, groupName) {
         if (!this._isActive ||
-          groupName !== this._groupName ||
-          groupName === undefined) {
+            groupName !== this._groupName ||
+            groupName === undefined) {
             return;
         }
 
@@ -128,7 +124,7 @@
         this._$block.trigger('blockOpened', [this._$block, this._groupName]);
 
         if (this._outerClickClose) {
-            $('body').on('click', this.outerClickListener);
+            $('body').on(this._clickEvent, this.outerClickListener);
         }
     };
     BlockToggler.prototype.hideBlock = function () {
@@ -169,14 +165,14 @@
         this._$block.trigger('blockClosed', [this._$block, this._groupName]);
 
         if (this._outerClickClose) {
-            $('body').off('click', this.outerClickListener);
+            $('body').off(this._clickEvent, this.outerClickListener);
         }
     };
     BlockToggler.prototype.throttle = function (func, ms) {
 
         var isThrottled = false,
-          savedArgs,
-          savedThis;
+            savedArgs,
+            savedThis;
 
         function wrapper() {
 
@@ -200,6 +196,9 @@
         }
 
         return wrapper;
+    };
+    BlockToggler.prototype.isIOS = function () {
+        return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
     };
 
     $.fn.blockToggler = function () {
