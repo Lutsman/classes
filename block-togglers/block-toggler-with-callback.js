@@ -1,173 +1,196 @@
 /*BlockToggler*/
-(function(){
+(function ($) {
     function BlockToggler(options) {
-        this._block = options.block;
-        this._target = $(this._block).attr('data-target');
-        this._getTarget = options.getTarget || null; //func, arg: this._block, return: target
-        this._groupName = $(this._block).attr('data-group-name');
+        this._$block = $(options.block);
+        this._targetSelector = this._$block.attr('data-target') || this._$block.attr('href');
+        this._getTarget = options.getTarget || null; //func, arg: this._$block, return: target
+        this._groupName = this._$block.attr('data-group');
         this._isActive = false;
         this._animate = options.animate || 'simple';  // 'none', 'simple', 'slide', 'fade'
         this._onOpen = options.onOpen || null;
         this._onClose = options.onClose || null;
         this._onAfterOpen = options.onAfterOpen || null;
         this._onAfterClose = options.onAfterClose || null;
+        this._outerClickClose = options.outerClick || false;
     }
+
     BlockToggler.prototype.init = function () {
-        if (!this._target && typeof this._getTarget === 'function') {
-            this._target = this._getTarget(this._block);
+        var $target =  $(this._targetSelector);
+
+        if (typeof this._getTarget === 'function') {
+            $target = $(this._getTarget(this._$block, this));
         }
-        
-        //if (!this._target) return; //if still no target stop init func
-        
+
+        this._$target = $target;
+
+        if (!$target.length && this._animate !== 'none') return; //if still no target stop init func
+
+        this.outerClickListener = this.outerClickListener.bind(this);
+
         var throttledToggler = this.throttle(this.toggler, 405);
-        
-        $(this._block).on('click', throttledToggler.bind(this));
-        
+
+        this._$block.on('click', throttledToggler.bind(this));
+
         $('body').on({
             'openBlock': this.openBlockListener.bind(this),
             'closeGroup': this.closeGroupListener.bind(this)
         });
+
+        /*if (this._outerClickClose) {
+         $('body').on('click', this.outerClickListener.bind(this));
+         }*/
     };
     BlockToggler.prototype.toggler = function (e) {
+        var $el = $(e.target);
+        var isTarget = !!$el.closest(this._$target).length;
+
+        if (this._isActive && isTarget) return;
+
         e.preventDefault();
-        
+
         if (this._isActive) {
-            this.hideBlock(function () {
-                $(this._block).removeClass('active');
-                
-                if (this._onAfterClose) {
-                    this._onAfterClose(this);
-                }
-            }.bind(this));
-            
-            $(this._block).trigger('blockClose', [this._block, this._groupName]);
-            
-            if (this._onClose) {
-                this._onClose(this);
-            }
+            this.hideBlock();
         } else {
-            $(this._block).addClass('active');
-            this.showBlock(function () {
-                if (this._onAfterOpen) {
-                    this._onAfterOpen(this);
-                }
-            }.bind(this));
-            
-            $(this._block).trigger('openBlock', [this._block, this._groupName]);
-            
-            if (this._onOpen) {
-                this._onOpen(this);
-            }
+            this.showBlock();
         }
     };
-    BlockToggler.prototype.openBlockListener = function (e, block, groupName) {
-        var conditions = block !== this._block && groupName === this._groupName && groupName !== undefined;
-        
-        if ((this._block.classList.contains('active') && conditions) || ($(this._target).is(':visible') && conditions)) {
-            $(this._block).removeClass('active');
-            this.hideBlock(this._onAfterClose(this));
-            
-            if (this._onClose) {
-                this._onClose(this);
-            }
+    BlockToggler.prototype.openBlockListener = function (e, $block, groupName) {
+        if (!this._isActive ||
+          $block.is(this._$block) ||
+          groupName !== this._groupName ||
+          groupName === undefined) {
             return;
         }
-        
-        if ( !conditions || !this._isActive) return;
-        
-        $(this._block).removeClass('active');
-        this.hideBlock(this._onAfterClose);
-        
-        if (this._onClose) {
-            this._onClose(this);
-        }
+
+        this.hideBlock();
     };
     BlockToggler.prototype.closeGroupListener = function (e, groupName) {
-        if (groupName !== this._groupName || groupName === undefined || !this._isActive) return;
-        
-        this.hideBlock(function () {
-            $(this._block).removeClass('active');
-            
-            if (this._onAfterClose) {
-                this._onAfterClose(this);
-            }
-        }.bind(this));
-        
-        $(this._block).trigger('blockClose', [this._block, this._groupName]);
-        
-        if (this._onClose) {
-            this._onClose(this);
+        if (!this._isActive ||
+          groupName !== this._groupName ||
+          groupName === undefined) {
+            return;
         }
+
+        this.hideBlock();
     };
-    BlockToggler.prototype.showBlock = function (callback) {
-        var target = this._target;
-        callback = callback || function () {};
-        
+    BlockToggler.prototype.outerClickListener = function (e) {
+        //console.dir(this);
+        if (!this._isActive) return;
+
+        var $el = $(e.target);
+        var isOuter = !$el.closest(this._$target.add(this._$block)).length;
+
+        if (!isOuter) return;
+
+        this.hideBlock();
+    };
+    BlockToggler.prototype.showBlock = function () {
+        var $target = this._$target;
+        var callback = this.showCallback.bind(this);
+
+        if (typeof this._onOpen === 'function') {
+            this._onOpen(this);
+        }
+
         switch (this._animate) {
             case 'none':
-                callback(this);
+                callback();
                 break;
             case 'simple':
-                $(target).show();
-                callback(this);
+                $target.show();
+                callback();
                 break;
             case 'slide':
-                if (!target) {
-                    callback(this);
-                } else {
-                    $(target).slideDown('normal', 'linear', callback);
-                }
-                break;
-            case 'fade':
-                if (!target) {
+                if (!$target.length) {
                     callback();
                 } else {
-                    $(target).fadeIn('normal', 'linear', callback);
+                    $target.slideDown('normal', 'linear', callback);
+                }
+                break;
+            case 'fade':
+                if (!$target.length) {
+                    callback();
+                } else {
+                    $target.fadeIn('normal', 'linear', callback);
                 }
                 break;
         }
-        
-        this._isActive = true;
     };
-    BlockToggler.prototype.hideBlock = function (callback) {
-        var target = this._target;
-        
+    BlockToggler.prototype.showCallback = function () {
+        this._$block.addClass('active');
+
+        this._isActive = true;
+
+        if (typeof this._onAfterOpen === 'function') {
+            this._onAfterOpen(this);
+        }
+
+        this._$block.trigger('blockOpened', [this._$block, this._groupName]);
+
+        if (this._outerClickClose) {
+            $('body').on('click', this.outerClickListener);
+        }
+    };
+    BlockToggler.prototype.hideBlock = function () {
+        var $target = this._$target;
+        var callback = this.hideCallback.bind(this);
+
+        if (typeof this._onClose === 'function') {
+            this._onClose(this);
+        }
+
+        this._$block.trigger('blockClosing', [this._$block, this._groupName]);
+
         switch (this._animate) {
             case 'none':
-                if (typeof callback === 'function') callback();
+                callback();
                 break;
             case 'simple':
-                $(target).hide();
-                if (typeof callback === 'function') callback();
+                $target.hide();
+                callback();
                 break;
             case 'slide':
-                $(target).slideUp('normal', 'linear', callback);
+                $target.slideUp('normal', 'linear', callback);
                 break;
             case 'fade':
-                $(target).fadeOut('normal', 'linear', callback);
+                $target.fadeOut('normal', 'linear', callback);
                 break;
         }
+    };
+    BlockToggler.prototype.hideCallback = function () {
+        this._$block.removeClass('active');
+
         this._isActive = false;
+
+        if (typeof this._onAfterClose === 'function') {
+            this._onAfterClose(this);
+        }
+
+        this._$block.trigger('blockClosed', [this._$block, this._groupName]);
+
+        if (this._outerClickClose) {
+            $('body').off('click', this.outerClickListener);
+        }
     };
     BlockToggler.prototype.throttle = function (func, ms) {
-        
+
         var isThrottled = false,
-            savedArgs,
-            savedThis;
-        
+          savedArgs,
+          savedThis;
+
         function wrapper() {
-            
+
             if (isThrottled) { // (2)
                 savedArgs = arguments;
                 savedThis = this;
                 return;
             }
-            
+
             func.apply(this, arguments); // (1)
-            
+
             isThrottled = true;
-            
-            setTimeout(function() {
+
+            setTimeout(function () {
                 isThrottled = false; // (3)
                 if (savedArgs) {
                     wrapper.apply(savedThis, savedArgs);
@@ -175,18 +198,18 @@
                 }
             }, ms);
         }
-        
+
         return wrapper;
     };
-    
+
     $.fn.blockToggler = function () {
         var options = typeof arguments[0] === 'object' ? arguments[0] : {};
-        
+
         $(this).each(function () {
             options.block = this;
-            
+
             var currBlockToggler = new BlockToggler(options);
             currBlockToggler.init();
         });
     }
-})();
+})(jQuery);
