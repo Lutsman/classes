@@ -4,6 +4,7 @@
         this._submitSelector = options.submitSelector || 'input[type="submit"]';
         this._listenedBlock = options.listenedBlock || 'body';
         this._resetForm = options.resetForm || true;
+        this._afterValidate = options.afterValidate || null;
         this._beforeSend = options.beforeSend || null;
         this._resolve = options.resolve || null;
         this._reject = options.reject || null;
@@ -187,20 +188,26 @@
         var form = elem.closest('form');
 
         if (this.validateForm(form)) {
-            this.sendRequest(form, this._resolve, this._reject, this._beforeSend);
+            if (this._afterValidate) {
+                this.afterValidateProcessing(form);
+            } else {
+                this.sendRequest(form, this._resolve, this._reject, this._beforeSend);
+            }
         }
+    };
+    FormController.prototype.afterValidateProcessing = function (form) {
+        this._afterValidate.apply(this, [form]);
     };
     FormController.prototype.sendRequest = function (form, resolve, reject, beforeSend) {
         var formData = $(form).serializeArray(); //собираем все данные из формы
         var self = this;
 
-        // TODO сделать отключение кнопки сабмита во время отправки
         this._sendingData = true;
 
         if (beforeSend) {
             beforeSend.call(this, formData, form);
         }
-        console.dir(formData);
+        //console.dir(formData);
 
         this.showPending(form);
 
@@ -242,26 +249,26 @@
         var $errBlock = $('.err-block', $(form));
 
         $('.form-success', $(form)).removeClass('form-success');
-        $errBlock.fadeIn('normal');
+        $errBlock.fadeIn(200);
 
         setTimeout(function () {
-            $errBlock.fadeOut('normal');
+            $errBlock.fadeOut(200);
         }, 10000);
     };
     FormController.prototype.showSuccess = function (form) {
         var $succBlock = $('.succ-block', $(form));
 
         $('.form-success', $(form)).removeClass('form-success');
-        $succBlock.fadeIn('normal');
+        $succBlock.fadeIn(200);
 
         setTimeout(function () {
             $succBlock.fadeOut('normal');
         }, 10000);
     };
     FormController.prototype.showPending = function (form) {
-        var $pendingBlock = $('.pend-block', $(form));
+        var $pendingBlock = $('.pending-block', $(form));
 
-        $pendingBlock.fadeIn('normal');
+        $pendingBlock.fadeIn(200);
     };
     FormController.prototype.hidePending = function (form, callback) {
         var $pendingBlock = $('.pend-block', $(form));
