@@ -5,7 +5,6 @@
         this._listenedBlock = options.listenedBlock || document.body;
         this._translationElementSelector = options.translation || false;
     }
-
     ScrollToAnchor.prototype.init = function () {
         $(this._listenedBlock).on('click', this.anchorClickListener.bind(this));
     };
